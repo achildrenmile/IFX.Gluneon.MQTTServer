@@ -1,0 +1,35 @@
+{
+  "name": "mainflux-mqtt",
+  "description": "Mainflux is an open source MIT licensed IoT cloud written in NodeJS",
+  "main": "mainfluxMqtt.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Mainflux/mainflux-mqtt"
+  },
+  "license": "Apache-2.0",
+  "scripts": {
+    "test": "node_modules/.bin/mocha"
+  },
+  "dependencies": {
+    "aedes": "^0.24.0",
+    "bunyan": "^1.5.1",
+    "gulp-exit": "0.0.2",
+    "gulp-jshint": "^1.12.0",
+    "gulp-mocha": "^2.2.0",
+    "gulp-nodemon": "^2.0.7",
+    "lodash": "~3.10.1",
+    "mongojs": "^1.4.1",
+    "websocket-stream": "^3.3.2"
+  },
+  "devDependencies": {
+    "chai": "^3.4.0",
+    "gulp": "^3.9.0",
+    "gulp-exit": "0.0.2",
+    "gulp-jshint": "^1.11.2",
+    "gulp-mocha": "^2.1.3",
+    "gulp-nodemon": "^2.0.3",
+    "jshint-stylish": "^2.0.1",
+    "mocha": "^2.3.3",
+    "supertest": "^1.1.0"
+  }
+}
