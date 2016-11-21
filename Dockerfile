@@ -29,7 +29,7 @@ RUN mkdir -p /etc/mainflux/mqtt
 COPY config.js /etc/mainflux/mqtt/config.js
 
 # Finally, install all project Node modules
-RUN mkdir -p 
+RUN mkdir -p $MAINFLUX_INSTALL_DIR
 COPY . $MAINFLUX_INSTALL_DIR
 WORKDIR $MAINFLUX_INSTALL_DIR
 RUN npm install
