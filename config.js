@@ -14,7 +14,7 @@ var config = {};
 config.mqtt = {
     host: '0.0.0.0',
     port: 1883
-    wsPort: 9090
+    wsPort: 8883
 }
 
 module.exports = config;
