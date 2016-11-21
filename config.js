@@ -13,7 +13,7 @@ var config = {};
  */
 config.mqtt = {
     host: '0.0.0.0',
-    port: 1883
+    port: 1883,
     wsPort: 8883
 }
 
