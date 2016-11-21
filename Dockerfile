@@ -26,7 +26,7 @@ RUN npm install -g nodemon
 
 # Add config
 RUN mkdir -p /etc/mainflux/mqtt
-COPY config/config-docker.toml /etc/mainflux/mqtt/config.toml
+COPY config.js /etc/mainflux/mqtt/config.js
 
 # Finally, install all project Node modules
 RUN mkdir -p 
