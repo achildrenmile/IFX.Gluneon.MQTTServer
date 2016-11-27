@@ -49,5 +49,4 @@ RUN wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSI
 # Run main command with dockerize
 ###
 CMD dockerize -wait tcp://$MONGO_HOST:$MONGO_PORT \
-				-wait nats://$NATS_HOST:$NATS_PORT \
 				-timeout 10s gulp /etc/mainflux/mqtt/config.toml
