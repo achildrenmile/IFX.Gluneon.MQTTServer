@@ -24,7 +24,27 @@ build/Release
 # see https://npmjs.org/doc/faq.html#Should-I-check-my-node_modules-folder-into-git
 node_modules
 
-# Ignore Visual Studio files
+# Visual Studio files
+*.sln
+*.njsproj
 
-.sln
-.njsproj
+# Vim files
+# swap
+[._]*.s[a-w][a-z]
+[._]s[a-w][a-z]
+# session
+Session.vim
+# temporary
+.netrwhist
+*~
+# auto-generated tag files
+tags
+
+# Go sources
+./src
+
+# Go tests
+*.test
+
+# Binary
+mainflux-mqtt
