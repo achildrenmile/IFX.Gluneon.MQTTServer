@@ -10,12 +10,13 @@ var aedes = require('aedes')()
 var server = require('net').createServer(aedes.handle)
 var httpServer = require('http').createServer()
 var ws = require('websocket-stream')
+var nats = require('nats').connect('nats://' + config.nats.host + ':' + config.nats.port);
 
 /**
  * Aedes
  */
-server.listen(config.mqttPort, function () {
-  console.log('server listening on port', config.mqttPort)
+server.listen(config.mqtt.port, function () {
+  console.log('server listening on port', config.mqtt.port)
 })
 
 /**
@@ -25,8 +26,8 @@ ws.createServer({
   server: httpServer
 }, aedes.handle)
 
-httpServer.listen(config.mqttWsPort, function () {
-  console.log('websocket server listening on port', config.mqttWsPort)
+httpServer.listen(config.mqtt.wsPort, function () {
+  console.log('websocket server listening on port', config.mqtt.wsPort)
 })
 
 /**

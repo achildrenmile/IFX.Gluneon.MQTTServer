@@ -14,6 +14,9 @@ ENV MAINFLUX_INSTALL_DIR opt/mainflux-mqtt
 ENV MONGO_HOST mongo
 ENV MONGO_PORT 27017
 
+ENV NATS_HOST nats
+ENV NATS_PORT 4222
+
 RUN apt-get update -qq && apt-get install -y build-essential wget
 
 ###
@@ -26,7 +29,7 @@ RUN npm install -g nodemon
 
 # Add config
 RUN mkdir -p /etc/mainflux/mqtt
-COPY config.js /etc/mainflux/mqtt/config.js
+COPY config/config-docker.toml /etc/mainflux/mqtt/config.toml
 
 # Finally, install all project Node modules
 RUN mkdir -p $MAINFLUX_INSTALL_DIR
@@ -43,15 +46,8 @@ RUN wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSI
 	&& tar -C /usr/local/bin -xzvf dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz
 
 ###
-# Run main command from entrypoint and parameters in CMD[]
-###
-
-CMD [""]
-
-# Set default container command
-ENTRYPOINT gulp
-
-###
 # Run main command with dockerize
 ###
-#CMD dockerize -wait tcp://$MONGO_HOST:$MONGO_PORT -timeout 10s gulp
+CMD dockerize -wait tcp://$MONGO_HOST:$MONGO_PORT \
+				-wait tcp://$NATS_HOST:$NATS_PORT \
+				-timeout 10s gulp /etc/mainflux/mqtt/config.toml

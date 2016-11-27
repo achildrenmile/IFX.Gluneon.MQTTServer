@@ -23,7 +23,7 @@ gulp.task('watch', function() {
 
     // Start up the server and have it reload when anything in the
     // ./build/ directory changes
-    nodemon({script: 'mainflux-mqtt.js', watch: 'app/**'});
+    nodemon({script: 'mainflux-mqtt.js', args:['/etc/mainflux/mqtt/config.toml'], watch: 'app/**'});
 });
 
 gulp.task('test', function() {
