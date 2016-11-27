@@ -5,19 +5,17 @@
  * All rights not explicitly granted in the Apache license, version 2.0 are reserved.
  * See the included LICENSE file for more details.
  */
-var config = require('./config')
+var config = require('./config/config')
 var aedes = require('aedes')()
 var server = require('net').createServer(aedes.handle)
 var httpServer = require('http').createServer()
 var ws = require('websocket-stream')
-var port = 1883
-var wsPort = 8883
 
 /**
  * Aedes
  */
-server.listen(port, function () {
-  console.log('server listening on port', port)
+server.listen(config.mqttPort, function () {
+  console.log('server listening on port', config.mqttPort)
 })
 
 /**
@@ -27,8 +25,8 @@ ws.createServer({
   server: httpServer
 }, aedes.handle)
 
-httpServer.listen(wsPort, function () {
-  console.log('websocket server listening on port', wsPort)
+httpServer.listen(config.mqttWsPort, function () {
+  console.log('websocket server listening on port', config.mqttWsPort)
 })
 
 /**

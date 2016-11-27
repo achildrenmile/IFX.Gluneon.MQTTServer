@@ -5,16 +5,13 @@
  * All rights not explicitly granted in the Apache license, version 2.0 are reserved.
  * See the included LICENSE file for more details.
  */
+var toml = require('toml');
+var fs = require('fs');
 
-var config = {};
+/** Read the config file */
+var str = fs.readFileSync(__dirname + "/config.toml", 'utf-8')
 
-/**
- * MQTT Server
- */
-config.mqtt = {
-    host: '0.0.0.0',
-    port: 1883,
-    wsPort: 8883
-}
+/** Parse the TOML string into the JS object */
+var config = toml.parse(str);
 
 module.exports = config;
