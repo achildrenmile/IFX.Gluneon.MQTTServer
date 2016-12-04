@@ -9,9 +9,9 @@
     //by Matthew Bordignon @bordignon on twitter.
 
     var wsbroker = "a3demo.mainflux.com";  //mqtt websocket enabled broker
-    var wsport = 8020 // port for above
+    var wsport = 8883 // port for above
 
-    var client = new Paho.MQTT.Client(wsbroker, wsport, '/');
+    var client = new Paho.MQTT.Client(wsbroker, wsport, '/ws');
 
     client.onConnectionLost = function (responseObject) {
       console.log("connection lost: " + responseObject.errorMessage);
