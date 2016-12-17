@@ -31,6 +31,26 @@ httpServer.listen(config.mqtt.wsPort, function () {
 })
 
 /**
+ * Hooks
+ */
+aedes.authorizePublish = function (client, packet, callback) {
+	var msg = {}
+	
+	msg.publisher = client.id
+	msg.payload = packet.payload.toJSON().data
+	msg.topic = packet.topic
+
+	var sysPack = packet
+	sysPack.payload = new Buffer(JSON.stringify(msg))
+	sysPack.topic = 'mainflux/system/messages'
+
+	console.log("publishing")
+	aedes.publish(sysPack, null)
+
+  callback(null)
+}
+
+/**
  * Handlers
  */
 aedes.on('clientError', function (client, err) {
