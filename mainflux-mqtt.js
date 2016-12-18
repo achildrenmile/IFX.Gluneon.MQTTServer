@@ -10,7 +10,8 @@ var aedes = require('aedes')()
 var server = require('net').createServer(aedes.handle)
 var httpServer = require('http').createServer()
 var ws = require('websocket-stream')
-var nats = require('nats').connect('nats://' + config.nats.host + ':' + config.nats.port);
+var nats = require('nats').connect('nats://' + config.nats.host + ':' + config.nats.port)
+var atob = require('atob')
 
 /**
  * Aedes
@@ -31,33 +32,39 @@ httpServer.listen(config.mqtt.wsPort, function () {
 })
 
 /**
+ * NATS
+ */
+// Sub on "core2mqtt"
+nats.subscribe('mainflux/core/mqtt', function(msg) {
+  console.log('Received a message: ' + msg);
+
+	var m = JSON.parse(msg)
+
+	var packet = {
+		cmd: 'publish',
+		qos: 2,
+		topic: m.topic,
+		payload: Buffer.from(atob(m.payload)),
+		retain: false
+	} 
+
+	aedes.publish(packet, null)
+});
+
+/**
  * Hooks
  */
 aedes.authorizePublish = function (client, packet, callback) {
-	if (packet.topic == "mainflux/core/pub") {
-		var msg = JSON.parse(packet.payload.toString())
-		packet.topic = msg.topic
-		console.log("---")
-		console.log(packet.topic)
-		console.log("---")
-
-		packet.payload = new Buffer(JSON.parse(msg.payload).toString)
-
-		//aedes.publish(packet, null)
-	} else {
-		var msg = {}
+	var msg = {}
 		
-		msg.publisher = client.id
-		msg.payload = packet.payload.toJSON().data
-		msg.topic = packet.topic
+	msg.publisher = client.id
+	msg.payload = packet.payload.toJSON().data
+	msg.topic = packet.topic
 
-		var sysPack = packet
-		sysPack.payload = new Buffer(JSON.stringify(msg))
-		sysPack.topic = 'mainflux/system/messages'
+	// Pub on "mqtt2core"
+	nats.publish('mainflux/mqtt/core', JSON.stringify(msg));
 
-		console.log("publishing")
-		aedes.publish(sysPack, null)
-	}
+	console.log("publishing")
 
 	callback(null)
 }
