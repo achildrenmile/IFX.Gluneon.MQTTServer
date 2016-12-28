@@ -8,7 +8,7 @@ var mocha   = require('gulp-mocha');
 var exit    = require('gulp-exit');
 
 // define the default task and add the watch task to it
-gulp.task('default', ['watch']);
+gulp.task('default', ['start']);
 
 // configure the jshint task
 gulp.task('lint', function() {
@@ -24,6 +24,12 @@ gulp.task('watch', function() {
     // Start up the server and have it reload when anything in the
     // ./build/ directory changes
     nodemon({script: 'mainflux-mqtt.js', args:['/etc/mainflux/mqtt/config.toml'], watch: 'app/**'});
+});
+
+// START
+gulp.task('start', function() {
+    // Start up the server and have it reload when anything in the
+    nodemon({script: 'mainflux-mqtt.js', args:['/etc/mainflux/mqtt/config.toml']});
 });
 
 gulp.task('test', function() {

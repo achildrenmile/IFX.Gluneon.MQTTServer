@@ -11,9 +11,6 @@ ENV MAINFLUX_MQTT_WS_PORT 8883
 
 ENV MAINFLUX_INSTALL_DIR opt/mainflux-mqtt
 
-ENV MONGO_HOST mongo
-ENV MONGO_PORT 27017
-
 ENV NATS_HOST nats
 ENV NATS_PORT 4222
 
@@ -48,6 +45,5 @@ RUN wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSI
 ###
 # Run main command with dockerize
 ###
-CMD dockerize -wait tcp://$MONGO_HOST:$MONGO_PORT \
-				-wait tcp://$NATS_HOST:$NATS_PORT \
-				-timeout 10s gulp
+CMD dockerize -wait tcp://$NATS_HOST:$NATS_PORT \
+				-timeout 10s node mainflux-mqtt.js /etc/mainflux/mqtt/config.toml
