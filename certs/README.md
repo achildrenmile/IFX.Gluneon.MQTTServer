@@ -25,6 +25,8 @@ mosquitto_pub -t mainflux/channels/a57cc963-c152-4fd2-9398-59495916babe -m '[{"b
 ```
 
 ### CSR, CA and KEY - Manual Generation
+All the keys can be generated via `generate-CA.sh` script as mentioned above, but the following chapter explains the process of generation in more details.
+
 Following the instructions [here](https://help.github.com/enterprise/11.10.340/admin/articles/using-self-signed-ssl-certificates/), [here](http://uwsgi-docs.readthedocs.io/en/latest/HTTPS.html) and especially [here](http://www.shellhacks.com/en/HowTo-Create-CSR-using-OpenSSL-Without-Prompt-Non-Interactive)
 
 Here is how we can do it:
