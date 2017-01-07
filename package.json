@@ -8,11 +8,12 @@
   },
   "license": "Apache-2.0",
   "scripts": {
-		"start": "node mainflux-mqtt.js",
+    "start": "node mainflux-mqtt.js",
     "test": "node_modules/.bin/mocha"
   },
   "dependencies": {
     "aedes": "^0.24.0",
+    "aedes-logging": "^1.0.1",
     "atob": "^2.0.3",
     "bunyan": "^1.5.1",
     "gulp-exit": "0.0.2",

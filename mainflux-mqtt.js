@@ -5,31 +5,70 @@
  * All rights not explicitly granted in the Apache license, version 2.0 are reserved.
  * See the included LICENSE file for more details.
  */
+
+'use strict'
 var config = require('./config/config')
-var aedes = require('aedes')()
-var server = require('net').createServer(aedes.handle)
-var httpServer = require('http').createServer()
-var ws = require('websocket-stream')
 var nats = require('nats').connect('nats://' + config.nats.host + ':' + config.nats.port)
 var atob = require('atob')
+var fs = require('fs')
+var path = require('path')
+var http = require('http')
+var https = require('https')
+var websocket = require('websocket-stream')
+var net = require('net')
+var tls = require('tls')
+var aedes = require('aedes')()
+var logging = require('aedes-logging')
 
-/**
- * Aedes
- */
-server.listen(config.mqtt.port, function () {
-  console.log('server listening on port', config.mqtt.port)
+var servers = [
+  startWs(),
+  startWss(),
+  startMqtt(),
+  startSecureMqtt()
+]
+
+logging({
+  instance: aedes,
+  servers: servers
 })
 
 /**
  * WebSocket
  */
-ws.createServer({
-  server: httpServer
-}, aedes.handle)
+function startWs() {
+  var server = http.createServer()
+  websocket.createServer({
+    server: server
+  }, aedes.handle)
+  server.listen(config.mqtt.wsPort)
+  return server
+}
 
-httpServer.listen(config.mqtt.wsPort, function () {
-  console.log('websocket server listening on port', config.mqtt.wsPort)
-})
+function startWss() {
+  var server = https.createServer({
+    key: fs.readFileSync(path.join(__dirname, 'certs', 'mainflux-server.key')),
+    cert: fs.readFileSync(path.join(__dirname, 'certs', 'mainflux-server.crt'))
+  })
+  websocket.createServer({
+    server: server
+  }, aedes.handle)
+  server.listen(config.mqtt.wssPort)
+  return server
+}
+
+/**
+ * MQTT
+ */
+function startMqtt() {
+  return net.createServer(aedes.handle).listen(config.mqtt.port)
+}
+
+function startSecureMqtt() {
+  return tls.createServer({
+    key: fs.readFileSync(path.join(__dirname, 'certs', 'mainflux-server.key')),
+    cert: fs.readFileSync(path.join(__dirname, 'certs', 'mainflux-server.crt'))
+  }, aedes.handle).listen(config.mqtt.tlsPort)
+}
 
 /**
  * NATS
