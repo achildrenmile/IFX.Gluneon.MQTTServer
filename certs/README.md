@@ -1,7 +1,4 @@
-# TLS in Mainflux
-
-> *N.B.* Most of the procedures about setting-up TLS in NGINX are taken from
-> [How To Create a Self-Signed SSL Certificate for Nginx in Ubuntu 16.04](https://www.digitalocean.com/community/tutorials/how-to-create-a-self-signed-ssl-certificate-for-nginx-in-ubuntu-16-04)
+# TLS in Mainflux MQTT
 
 ## Key and Certificate Generation
 
@@ -61,32 +58,3 @@ openssl x509 -req -sha512 -in mainflux-server.csr \
 			-CA ca.crt -CAkey ca.key -CAcreateserial -CAserial ca.srl \
 			-out mainflux-server.crt -days 5475 -extfile /tmp/cacnf.kAXcnZPl -extensions MFXextensions
 ```
-
-### Diffie-Hellman
-We should also create a strong Diffie-Hellman group, which is used in negotiating [Perfect Forward Secrecy](https://en.wikipedia.org/wiki/Forward_secrecy) with clients.
-
-```bash
-sudo openssl dhparam -out /etc/ssl/certs/dhparam.pem 2048
-```
-This may take a few minutes, but when it's done you will have a strong DH group at `/etc/ssl/certs/dhparam.pem`.
-
-## SSL Debugging
-Following the instructions [here](https://www.kamailio.org/wiki/tutorials/tls/testing-and-debugging)
-```bash
-openssl s_client -connect localhost:443 -no_ssl2 -bugs
-```
-
-```bash
-openssl s_client -showcerts -debug -connect localhost:443 -no_ssl2 -bugs
-```
-
-### Curl Testing
-```bash
-curl --cacert tls/mainflux.crt https://localhost:443/devices
-```
-or more verbose and with prett-print:
-```bash
-curl -v -s -i -H "Accept: application/json" -H "Content-Type: application/json" \
-  --cacert tls/mainflux.crt https://localhost:443/devices | json | pygmentize -l json
-```
-
