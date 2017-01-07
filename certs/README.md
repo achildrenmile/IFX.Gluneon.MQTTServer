@@ -1,6 +1,6 @@
-# TLS in Mainflux MQTT
+## TLS in Mainflux MQTT
 
-## Key and Certificate Generation
+### Key and Certificate Generation
 
 Use `generate-CA.sh` script (described [here](http://rockingdlabs.dunmire.org/exercises-experiments/ssl-client-certs-to-secure-mqtt)):
 
@@ -24,7 +24,7 @@ or PUB with something like:
 mosquitto_pub -t mainflux/channels/a57cc963-c152-4fd2-9398-59495916babe -m '[{"bn":"AAAAA","bt":1.276020076001e+09, "bu":"A","bver":5, "n":"voltage","u":"V","v":120.1}, {"n":"current","t":-5,"v":1.2}, {"n":"current","t":-4,"v":1.3}]' -p 8883 --cafile ./certs/ca.crt
 ```
 
-### CSR, CA and KEY
+### CSR, CA and KEY - Manual Generation
 Following the instructions [here](https://help.github.com/enterprise/11.10.340/admin/articles/using-self-signed-ssl-certificates/), [here](http://uwsgi-docs.readthedocs.io/en/latest/HTTPS.html) and especially [here](http://www.shellhacks.com/en/HowTo-Create-CSR-using-OpenSSL-Without-Prompt-Non-Interactive)
 
 Here is how we can do it:
