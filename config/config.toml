@@ -9,9 +9,7 @@
 [mqtt]
 host = 'localhost'
 port = 1883
-tlsPort = 8883
 wsPort = 8880
-wssPort = 8881
 
 [nats]
 host = 'localhost'

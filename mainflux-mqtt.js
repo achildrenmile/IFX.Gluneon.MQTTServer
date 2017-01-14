@@ -9,22 +9,15 @@
 'use strict'
 var config = require('./config/config')
 var nats = require('nats').connect('nats://' + config.nats.host + ':' + config.nats.port)
-var atob = require('atob')
-var fs = require('fs')
-var path = require('path')
 var http = require('http')
-var https = require('https')
 var websocket = require('websocket-stream')
 var net = require('net')
-var tls = require('tls')
 var aedes = require('aedes')()
 var logging = require('aedes-logging')
 
 var servers = [
   startWs(),
-  startWss(),
   startMqtt(),
-  startSecureMqtt()
 ]
 
 logging({
@@ -44,30 +37,11 @@ function startWs() {
   return server
 }
 
-function startWss() {
-  var server = https.createServer({
-    key: fs.readFileSync(path.join(__dirname, 'certs', 'mainflux-server.key')),
-    cert: fs.readFileSync(path.join(__dirname, 'certs', 'mainflux-server.crt'))
-  })
-  websocket.createServer({
-    server: server
-  }, aedes.handle)
-  server.listen(config.mqtt.wssPort)
-  return server
-}
-
 /**
  * MQTT
  */
 function startMqtt() {
   return net.createServer(aedes.handle).listen(config.mqtt.port)
-}
-
-function startSecureMqtt() {
-  return tls.createServer({
-    key: fs.readFileSync(path.join(__dirname, 'certs', 'mainflux-server.key')),
-    cert: fs.readFileSync(path.join(__dirname, 'certs', 'mainflux-server.crt'))
-  }, aedes.handle).listen(config.mqtt.tlsPort)
 }
 
 /**
