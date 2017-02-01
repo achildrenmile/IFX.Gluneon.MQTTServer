@@ -3,7 +3,7 @@
 ###
 # Set the base image to Node, onbuild variant: https://registry.hub.docker.com/_/node/
 
-FROM node:4.2.3
+FROM node:6.9.5-alpine
 MAINTAINER Mainflux
 
 ENV MAINFLUX_MQTT_PORT 1883
@@ -14,7 +14,7 @@ ENV MAINFLUX_INSTALL_DIR opt/mainflux-mqtt
 ENV NATS_HOST nats
 ENV NATS_PORT 4222
 
-RUN apt-get update -qq && apt-get install -y build-essential wget
+RUN apk update && apk add wget && rm -rf /var/cache/apk/*
 
 ###
 # Installations
