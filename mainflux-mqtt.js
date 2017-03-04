@@ -51,6 +51,13 @@ function startMqtt() {
 nats.subscribe('mainflux/core/out', function(msg) {
 	var m = JSON.parse(msg)
 
+	// Ignore loopback:
+	// if protocol is `mqtt` than this is the message
+	// that already went through the MQTT borker, to the NATS and
+	// has been re-published by the NATS
+	if (m.protocol == "mqtt")
+		return
+
 	var packet = {
 		cmd: 'publish',
 		qos: 2,
