@@ -48,13 +48,13 @@ function startMqtt() {
  * NATS
  */
 // Sub on "core2mqtt"
-nats.subscribe('mainflux/core/mqtt', function(msg) {
+nats.subscribe('mainflux/core/out', function(msg) {
 	var m = JSON.parse(msg)
 
 	var packet = {
 		cmd: 'publish',
 		qos: 2,
-		topic: m.topic,
+		topic: "mainflux/channels/" + m.channel,
 		payload: Buffer.from(m.payload, 'base64'),
 		retain: false
 	} 
@@ -76,10 +76,12 @@ aedes.authorizePublish = function (client, packet, callback) {
 	 * but for now just send buffer as Base64-encoded string
 	 */
 	msg.payload = packet.payload.toString('base64')
-	msg.topic = packet.topic
+	// Topics are in the form `mainflux/channels/<channel_id>`
+	msg.channel = packet.topic.split("/")[2]
+	msg.protocol = "mqtt"
 
 	// Pub on "mqtt2core"
-	nats.publish('mainflux/mqtt/core', JSON.stringify(msg));
+	nats.publish('mainflux/core/in', JSON.stringify(msg));
 
 	console.log("publishing")
 
