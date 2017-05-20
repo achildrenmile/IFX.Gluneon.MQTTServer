@@ -8,7 +8,7 @@
     //sample HTML/JS script that will publish/subscribe to topics in the Google Chrome Console
     //by Matthew Bordignon @bordignon on twitter.
 
-    var wsbroker = "a3demo.mainflux.com";  //mqtt websocket enabled broker
+    var wsbroker = "localhost";  //mqtt websocket enabled broker
     var wsport = 8883 // port for above
 
     var client = new Paho.MQTT.Client(wsbroker, wsport, '/ws');
@@ -26,8 +26,7 @@
       onSuccess: function () {
         console.log("mqtt connected");
         // Connection succeeded; subscribe to our topic, you can add multile lines of these
-        client.subscribe('test', {qos: 1});
-
+        client.subscribe('mainflux/channels/:your_channel_id', {qos: 1});  //Replace <:your_channel_id>
 
         //use the below if you want to publish to a topic on connect
 	 var payload = [
