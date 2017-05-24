@@ -54,7 +54,7 @@ nats.subscribe('msg.http', function(msg) {
 	var packet = {
 		cmd: 'publish',
 		qos: 2,
-		topic: "mainflux/channels/" + m.channel + "/messages/senml/json",
+		topic: "mainflux/channels/" + m.channel + "/messages/senml-json",
 		payload: Buffer.from(m.payload, 'base64'),
 		retain: false
 	} 
@@ -76,9 +76,9 @@ aedes.authorizePublish = function (client, packet, callback) {
 	 * but for now just send buffer as Base64-encoded string
 	 */
 	msg.payload = packet.payload.toString('base64')
-	// Topics are in the form `mainflux/channels/<channel_id>/messages/senml/json`
+	// Topics are in the form `mainflux/channels/<channel_id>/messages/senml-json`
 	msg.channel = packet.topic.split("/")[2]
-    msg.content_type = packet.topic.split("/")[4] + "+" + packet.topic.split("/")[5]
+	msg.content_type = packet.topic.split("/")[4]
 	msg.protocol = "mqtt"
 
 	// Pub on "mqtt2core"
