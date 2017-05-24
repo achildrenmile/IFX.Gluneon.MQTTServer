@@ -48,36 +48,13 @@ function startMqtt() {
  * NATS
  */
 
-// TODO: this one is depricated
-// Sub on "core2mqtt"
-nats.subscribe('mainflux/core/out', function(msg) {
-	var m = JSON.parse(msg)
-
-	// Ignore loopback:
-	// if protocol is `mqtt` than this is the message
-	// that already went through the MQTT borker, to the NATS and
-	// has been re-published by the NATS
-	if (m.protocol == "mqtt")
-		return
-
-	var packet = {
-		cmd: 'publish',
-		qos: 2,
-		topic: "mainflux/channels/" + m.channel,
-		payload: Buffer.from(m.payload, 'base64'),
-		retain: false
-	} 
-
-	aedes.publish(packet, null)
-});
-
 // Sub on "core2mqtt"
 nats.subscribe('msg.http', function(msg) {
 	var m = JSON.parse(msg)
 	var packet = {
 		cmd: 'publish',
 		qos: 2,
-		topic: "msg/" + m.channel,
+		topic: "mainflux/channels/" + m.channel + "/messages/senml/json",
 		payload: Buffer.from(m.payload, 'base64'),
 		retain: false
 	} 
@@ -99,13 +76,10 @@ aedes.authorizePublish = function (client, packet, callback) {
 	 * but for now just send buffer as Base64-encoded string
 	 */
 	msg.payload = packet.payload.toString('base64')
-	// Topics are in the form `mainflux/channels/<channel_id>`
-	msg.channel = packet.topic.split("/")[2] // TODO: For version with `msg/<channel_id>` there should be just [1]
+	// Topics are in the form `mainflux/channels/<channel_id>/messages/senml/json`
+	msg.channel = packet.topic.split("/")[2]
+    msg.content_type = packet.topic.split("/")[4] + "+" + packet.topic.split("/")[5]
 	msg.protocol = "mqtt"
-
-	// TODO: this one is depricated
-	// Pub on "mqtt2core"
-	nats.publish('mainflux/core/in', JSON.stringify(msg));
 
 	// Pub on "mqtt2core"
 	nats.publish('msg.mqtt', JSON.stringify(msg));
