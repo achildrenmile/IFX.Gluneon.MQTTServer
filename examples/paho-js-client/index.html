@@ -26,7 +26,7 @@
       onSuccess: function () {
         console.log("mqtt connected");
         // Connection succeeded; subscribe to our topic, you can add multile lines of these
-        client.subscribe('mainflux/channels/:your_channel_id', {qos: 1});  //Replace <:your_channel_id>
+        client.subscribe('mainflux/channels/:your_channel_id/messages/senml-json', {qos: 1});  //Replace <:your_channel_id>
 
         //use the below if you want to publish to a topic on connect
 	 var payload = [
