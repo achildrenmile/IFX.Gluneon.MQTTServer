@@ -54,10 +54,10 @@ nats.subscribe('msg.http', function(msg) {
 	var packet = {
 		cmd: 'publish',
 		qos: 2,
-		topic: "mainflux/channels/" + m.channel + "/messages/senml-json",
+		topic: "mainflux/channels/" + m.channel + "/messages/" + m.content_type,
 		payload: Buffer.from(m.payload, 'base64'),
 		retain: false
-	} 
+	}
 
 	aedes.publish(packet, null)
 });
@@ -67,7 +67,7 @@ nats.subscribe('msg.http', function(msg) {
  */
 aedes.authorizePublish = function (client, packet, callback) {
 	var msg = {}
-		
+
 	msg.publisher = client.id
 	/**
 	 * Go encodes/decodes binary arrays ar base64 strings,
