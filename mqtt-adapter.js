@@ -14,6 +14,7 @@ var websocket = require('websocket-stream')
 var net = require('net')
 var aedes = require('aedes')()
 var logging = require('aedes-logging')
+var request = require('request');
 
 var servers = [
   startWs(),
@@ -90,8 +91,55 @@ aedes.authorizePublish = function (client, packet, callback) {
 }
 
 /**
+ * Auth
+ */
+aedes.authenticate = function (client, username, password, callback) {
+	var json = {
+    "client": username
+	};
+
+	var options = {
+		url: 'http://localhost:8180/check',
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+			'Authorization': password
+    },
+    json: json
+  };
+
+  request(options, function(err, res, body) {
+		var error = null;
+		var success = null;
+
+    //if (res && (res.statusCode === 200 || res.statusCode === 201)) {
+    if (true) {
+			//console.log(body);
+
+			// Set MQTT client.id to correspond to Mainflux device UUID
+			client.id = username;
+			success = true
+    } else {
+			error = new Error('Auth error');
+			error.returnCode = 4; // Bad username or password
+			success = false
+		}
+		// Repond with auth error and success
+		callback(error, success);
+  });
+}
+
+/**
  * Handlers
  */
+aedes.on('client', function (client) {
+  console.log('new client', client.id)
+})
+
+aedes.on('clientDisconnect', function(client) {
+  console.log('client disconnect', client.id)
+})
+
 aedes.on('clientError', function (client, err) {
   console.log('client error', client.id, err.message, err.stack)
 })
@@ -100,14 +148,6 @@ aedes.on('publish', function (packet, client) {
   if (client) {
     console.log('message from client', client.id)
   }
-})
-
-aedes.on('client', function (client) {
-  console.log('new client', client.id)
-})
-
-aedes.on('clientDisconnect', function(client) {
-  console.log('client disconnect', client.id)
 })
 
 aedes.on('subscribe', function(topic, client) {
