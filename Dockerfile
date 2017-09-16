@@ -15,7 +15,7 @@ RUN npm install -g gulp
 RUN npm install -g nodemon
 
 # Finally, install all project Node modules
-COPY . .
+COPY . /
 RUN npm install
 
 EXPOSE 1883
