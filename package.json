@@ -1,7 +1,7 @@
 {
   "name": "mqtt-adapter",
   "description": "Mainflux is an open source MIT licensed IoT cloud written in NodeJS",
-  "main": "mainfluxMqtt.js",
+  "main": "mqtt-adapter.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/Mainflux/mqtt-adapter"

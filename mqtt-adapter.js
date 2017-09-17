@@ -7,8 +7,7 @@
  */
 
 'use strict'
-var config = require('./config/config')
-var nats = require('nats').connect('nats://' + config.nats.host + ':' + config.nats.port)
+var nats = require('nats').connect(process.env.MQTT_ADAPTER_NATS_URL)
 var http = require('http')
 var websocket = require('websocket-stream')
 var net = require('net')
@@ -34,7 +33,7 @@ function startWs() {
   websocket.createServer({
     server: server
   }, aedes.handle)
-  server.listen(config.mqtt.wsPort)
+  server.listen(8880)
   return server
 }
 
@@ -42,7 +41,7 @@ function startWs() {
  * MQTT
  */
 function startMqtt() {
-  return net.createServer(aedes.handle).listen(config.mqtt.port)
+  return net.createServer(aedes.handle).listen(1883)
 }
 
 /**
