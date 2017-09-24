@@ -26,6 +26,12 @@ logging({
 })
 
 /**
+ * PUB_BRIDGE flag, set to 1 when message is published over NATS bridge
+ * and not an MQTT client connected to the broker directly
+ */
+var PUB_BRIDGE = false
+
+/**
  * WebSocket
  */
 function startWs() {
@@ -48,6 +54,10 @@ function startMqtt() {
  * NATS
  */
 
+var resetPubBridge = function() {
+  PUB_BRIDGE = false
+}
+
 // Sub on "core2mqtt"
 nats.subscribe('msg.http', function(msg) {
 	var m = JSON.parse(msg)
@@ -59,42 +69,25 @@ nats.subscribe('msg.http', function(msg) {
 		retain: false
 	}
 
-	aedes.publish(packet, null)
+  PUB_BRIDGE = true
+	aedes.publish(packet, resetPubBridge)
 });
 
 /**
  * Hooks
  */
 aedes.authorizePublish = function (client, packet, callback) {
-	var msg = {}
-
-	msg.publisher = client.id
-	/**
-	 * Go encodes/decodes binary arrays ar base64 strings,
-	 * while Aededs uses UTF-8 encoding.
-	 * For NodeJS > 7.1 we can use function `buffer.transcode()` here,
-	 * but for now just send buffer as Base64-encoded string
-	 */
-	msg.payload = packet.payload.toString('base64')
-	// Topics are in the form `mainflux/channels/<channel_id>/messages/senml-json`
-	msg.channel = packet.topic.split("/")[2]
-	msg.content_type = packet.topic.split("/")[4]
-	msg.protocol = "mqtt"
-
-	// Pub on "mqtt2core"
-	nats.publish('msg.mqtt', JSON.stringify(msg));
-
 	console.log("publishing")
-
 	callback(null)
 }
 
 /**
  * Auth
  */
-aedes.authenticate = function (client, username, password, callback) {
+//aedes.authenticate = function (client, username, password, callback) {
+var dummy = function (client, username, password, callback) {
 	var json = {
-    "client": username
+        "client": username
 	};
 
 	var options = {
@@ -144,7 +137,26 @@ aedes.on('clientError', function (client, err) {
 })
 
 aedes.on('publish', function (packet, client) {
-  if (client) {
+  if (client && !PUB_BRIDGE) {
+	  var msg = {}
+
+	  msg.publisher = client.id
+	  // Topics are in the form `mainflux/channels/<channel_id>/messages/senml-json`
+	  msg.channel = packet.topic.split("/")[2]
+	  msg.protocol = "mqtt"
+	  msg.content_type = packet.topic.split("/")[4]
+
+	  /**
+	   * Go encodes/decodes binary arrays ar base64 strings,
+	   * while Aedes uses UTF-8 encoding.
+	   * For NodeJS > 7.1 we can use function `buffer.transcode()` here,
+	   * but for now just send buffer as Base64-encoded string
+	   */
+	  msg.payload = packet.payload.toString('base64')
+
+	  // Pub on "mqtt2core"
+	  nats.publish('adapter.mqtt', JSON.stringify(msg));
+
     console.log('message from client', client.id)
   }
 })
