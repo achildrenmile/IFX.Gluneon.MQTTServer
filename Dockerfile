@@ -15,5 +15,4 @@ EXPOSE 8880
 ###
 # Run main command with dockerize
 ###
-CMD ["node", "mqtt-adapter.js"]
-
+CMD ["node", "mqtt.js"]
