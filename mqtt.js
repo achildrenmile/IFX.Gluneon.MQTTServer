@@ -26,12 +26,6 @@ logging({
 })
 
 /**
- * PUB_BRIDGE flag, set to 1 when message is published over NATS bridge
- * and not an MQTT client connected to the broker directly
- */
-var PUB_BRIDGE = false
-
-/**
  * WebSocket
  */
 function startWs() {
@@ -53,13 +47,7 @@ function startMqtt() {
 /**
  * NATS
  */
-
-var resetPubBridge = function() {
-  PUB_BRIDGE = false
-}
-
-// Sub on "core2mqtt"
-nats.subscribe('msg.http', function(msg) {
+nats.subscribe('adapter.http', function(msg) {
 	var m = JSON.parse(msg)
 	var packet = {
 		cmd: 'publish',
@@ -69,54 +57,124 @@ nats.subscribe('msg.http', function(msg) {
 		retain: false
 	}
 
-  PUB_BRIDGE = true
 	aedes.publish(packet, resetPubBridge)
 });
 
 /**
  * Hooks
  */
+// AuthZ PUB
 aedes.authorizePublish = function (client, packet, callback) {
-	console.log("publishing")
-	callback(null)
+
+  // Topics are in the form `mainflux/channels/<channel_id>/messages/senml-json`
+  var channel = packet.topic.split("/")[2]
+
+  /**
+   * Check if PUB is authorized
+   */
+  var options = {
+		url: 'http://localhost:8180/channels/' + channel + '/messages',
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+			'Authorization': client.password
+    },
+  };
+
+  request(options, function(err, res, body) {
+		var error = null;
+
+    if (res && (res.statusCode === 202)) {
+		  console.log("Publish authorized OK")
+      /**
+       * We must publish on NATS here, because on_publish() is also called
+       * when we receive message from NATS from other adapters (in nats.subscribe()),
+       * so we must avoid re-publishing on NATS what came from other adapters
+       */
+      var msg = {}
+      msg.publisher = client.id
+      msg.channel = channel
+      msg.protocol = "mqtt"
+      msg.content_type = packet.topic.split("/")[4]
+
+      /**
+       * Go encodes/decodes binary arrays ar base64 strings,
+       * while Aedes uses UTF-8 encoding.
+       * For NodeJS > 7.1 we can use function `buffer.transcode()` here,
+       * but for now just send buffer as Base64-encoded string
+       */
+      msg.payload = packet.payload.toString('base64')
+
+      // Pub on NATS
+      nats.publish('adapter.mqtt', JSON.stringify(msg));
+    } else {
+      console.log("Publish not authorized")
+      error = 4 // Bad username or password
+		}
+	  callback(error)
+  });
 }
 
-/**
- * Auth
- */
-//aedes.authenticate = function (client, username, password, callback) {
-var dummy = function (client, username, password, callback) {
-	var json = {
-        "client": username
-	};
+// AuthZ SUB
+aedes.authorizeSubscribe = function (client, packet, callback) {
 
+  // Topics are in the form `mainflux/channels/<channel_id>/messages/senml-json`
+  var channel = packet.topic.split("/")[2]
+
+  /**
+   * Check if PUB is authorized
+   */
+  var options = {
+		url: 'http://localhost:8180/channels/' + channel + '/messages',
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+			'Authorization': client.password
+    },
+  };
+
+  request(options, function(err, res, body) {
+		var error = null;
+
+    if (res && (res.statusCode === 202)) {
+		  console.log("Subscribe authorized OK")
+    } else {
+      console.log("Subscribe not authorized")
+      error = 4 // Bad username or password
+		}
+	  callback(error, packet)
+  });
+}
+
+// AuthX
+aedes.authenticate = function (client, username, password, callback) {
 	var options = {
-		url: 'http://localhost:8180/check',
+		url: 'http://localhost:8180/identity',
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
 			'Authorization': password
     },
-    json: json
   };
 
   request(options, function(err, res, body) {
 		var error = null;
 		var success = null;
 
-    //if (res && (res.statusCode === 200 || res.statusCode === 201)) {
-    if (true) {
-			//console.log(body);
-
+    if (res && (res.statusCode === 200)) {
 			// Set MQTT client.id to correspond to Mainflux device UUID
-			client.id = username;
+			client.id = res.headers['x-client-id'];
+
+      // Store password for future references
+      client.password = password
 			success = true
     } else {
 			error = new Error('Auth error');
 			error.returnCode = 4; // Bad username or password
 			success = false
 		}
-		// Repond with auth error and success
+
+		// Respond with auth error and success
 		callback(error, success);
   });
 }
@@ -130,6 +188,8 @@ aedes.on('client', function (client) {
 
 aedes.on('clientDisconnect', function(client) {
   console.log('client disconnect', client.id)
+  // Remove client password
+  client.password = null
 })
 
 aedes.on('clientError', function (client, err) {
@@ -137,26 +197,7 @@ aedes.on('clientError', function (client, err) {
 })
 
 aedes.on('publish', function (packet, client) {
-  if (client && !PUB_BRIDGE) {
-	  var msg = {}
-
-	  msg.publisher = client.id
-	  // Topics are in the form `mainflux/channels/<channel_id>/messages/senml-json`
-	  msg.channel = packet.topic.split("/")[2]
-	  msg.protocol = "mqtt"
-	  msg.content_type = packet.topic.split("/")[4]
-
-	  /**
-	   * Go encodes/decodes binary arrays ar base64 strings,
-	   * while Aedes uses UTF-8 encoding.
-	   * For NodeJS > 7.1 we can use function `buffer.transcode()` here,
-	   * but for now just send buffer as Base64-encoded string
-	   */
-	  msg.payload = packet.payload.toString('base64')
-
-	  // Pub on "mqtt2core"
-	  nats.publish('adapter.mqtt', JSON.stringify(msg));
-
+  if (client) {
     console.log('message from client', client.id)
   }
 })
