@@ -47,7 +47,7 @@ function startMqtt() {
 /**
  * NATS
  */
-nats.subscribe('adapter.http', function(msg) {
+nats.subscribe('msg.http', function(msg) {
 	var m = JSON.parse(msg)
 	var packet = {
 		cmd: 'publish',
@@ -106,7 +106,7 @@ aedes.authorizePublish = function (client, packet, callback) {
       msg.payload = packet.payload.toString('base64')
 
       // Pub on NATS
-      nats.publish('adapter.mqtt', JSON.stringify(msg));
+      nats.publish('msg.mqtt', JSON.stringify(msg));
     } else {
       console.log("Publish not authorized")
       error = 4 // Bad username or password
