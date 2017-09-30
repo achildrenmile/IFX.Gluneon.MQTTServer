@@ -6,34 +6,35 @@
  * See the included LICENSE file for more details.
  */
 
-'use strict'
-var nats = require('nats').connect(process.env.MQTT_ADAPTER_NATS_URL)
-var http = require('http')
-var websocket = require('websocket-stream')
-var net = require('net')
-var aedes = require('aedes')()
-var logging = require('aedes-logging')
+'use strict';
+
+var nats = require('nats').connect(process.env.MQTT_ADAPTER_NATS_URL);
+var http = require('http');
+var websocket = require('websocket-stream');
+var net = require('net');
+var aedes = require('aedes')();
+var logging = require('aedes-logging');
 var request = require('request');
 
 var servers = [
   startWs(),
-  startMqtt(),
-]
+  startMqtt()
+];
 
 logging({
   instance: aedes,
   servers: servers
-})
+});
 
 /**
  * WebSocket
  */
 function startWs() {
-  var server = http.createServer()
+  var server = http.createServer();
   websocket.createServer({
     server: server
-  }, aedes.handle)
-  server.listen(8880)
+}, aedes.handle);
+  server.listen(8880);
   return server
 }
 
