@@ -50,6 +50,12 @@ function startMqtt() {
  */
 nats.subscribe('msg.http', function (msg) {
     var m = JSON.parse(msg);
+    
+    // Parse and adjust content-type
+    if (m.content_type == "application/senml+json") {
+        m.content_type = "senml-json"
+    }
+
     var packet = {
         cmd: 'publish',
         qos: 2,
@@ -57,6 +63,7 @@ nats.subscribe('msg.http', function (msg) {
         payload: Buffer.from(m.payload, 'base64'),
         retain: false
     };
+
     aedes.publish(packet);
 });
 
