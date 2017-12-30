@@ -149,8 +149,8 @@ aedes.authorizeSubscribe = function (client, packet, callback) {
 aedes.authenticate = function (client, username, password, callback) {
     var c = client;
     var options = {
-        url: config.auth_url + ':' + config.auth_port + '/identity',
-        method: 'POST',
+        url: config.auth_url + ':' + config.auth_port + '/access-grant',
+        method: 'GET',
         headers: {
             'Content-Type': 'application/json',
             'Authorization': password
