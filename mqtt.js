@@ -78,7 +78,7 @@ aedes.authorizePublish = function (client, packet, callback) {
     * Check if PUB is authorized
     */
     var options = {
-        url: config.auth_url + ':' + config.auth_port + '/channels/' + channel + '/messages',
+        url: config.auth_url + ':' + config.auth_port + '/channels/' + channel + '/access-grant',
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',
@@ -89,7 +89,7 @@ aedes.authorizePublish = function (client, packet, callback) {
     request(options, function (err, res) {
         var error = null;
         var msg = {};
-        if (res && (res.statusCode === 202)) {
+        if (res && (res.statusCode === 200)) {
             console.log('Publish authorized OK');
             /**
             * We must publish on NATS here, because on_publish() is also called
@@ -125,8 +125,8 @@ aedes.authorizeSubscribe = function (client, packet, callback) {
     * Check if PUB is authorized
     */
     var options = {
-        url: config.auth_url + ':' + config.auth_port + '/channels/' + channel + '/messages',
-        method: 'POST',
+        url: config.auth_url + ':' + config.auth_port + '/channels/' + channel + '/access-grant',
+        method: 'GET',
         headers: {
             'Content-Type': 'application/json',
             'Authorization': client.password
@@ -135,7 +135,7 @@ aedes.authorizeSubscribe = function (client, packet, callback) {
 
     request(options, function (err, res) {
         var error = null;
-        if (res && (res.statusCode === 202)) {
+        if (res && (res.statusCode === 200)) {
             console.log('Subscribe authorized OK');
         } else {
             console.log('Subscribe not authorized');
