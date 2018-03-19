@@ -24,6 +24,7 @@
     "lodash": "~3.10.1",
     "mongojs": "^1.4.1",
     "nats": "^0.6.8",
+    "protocol-buffers": "^4.0.4",
     "request": "^2.81.0",
     "toml": "^2.3.0",
     "websocket-stream": "^3.3.2"

@@ -18,6 +18,12 @@ var request = require('request');
 var config = require('./mqtt.config');
 var nats = require('nats').connect(config.nats_url);
 
+var protobuf = require('protocol-buffers');
+const fs = require('fs');
+
+// pass a proto file as a buffer/string or pass a parsed protobuf-schema object
+var message = protobuf(fs.readFileSync('message.proto'));
+
 var servers = [
     startWs(),
     startMqtt()
@@ -49,8 +55,8 @@ function startMqtt() {
  * NATS
  */
 nats.subscribe('msg.http', function (msg) {
-    var m = JSON.parse(msg);
-    
+    var m = message.RawMessage.decode(msg)
+
     // Parse and adjust content-type
     if (m.content_type == "application/senml+json") {
         m.content_type = "senml-json"
@@ -75,8 +81,8 @@ aedes.authorizePublish = function (client, packet, callback) {
     // Topics are in the form `mainflux/channels/<channel_id>/messages/senml-json`
     var channel = packet.topic.split('/')[2];
     /**
-    * Check if PUB is authorized
-    */
+     * Check if PUB is authorized
+     */
     var options = {
         url: config.auth_url + ':' + config.auth_port + '/channels/' + channel + '/access-grant',
         method: 'GET',
@@ -91,22 +97,26 @@ aedes.authorizePublish = function (client, packet, callback) {
         var msg = {};
         if (res && (res.statusCode === 200)) {
             console.log('Publish authorized OK');
-            /**
-            * We must publish on NATS here, because on_publish() is also called
-            * when we receive message from NATS from other adapters (in nats.subscribe()),
-            * so we must avoid re-publishing on NATS what came from other adapters
-            */
-            msg.publisher = client.id;
-            msg.channel = channel;
-            msg.protocol = 'mqtt';
-            msg.content_type = packet.topic.split('/')[4];
-            /**
-            * Go encodes/decodes binary arrays ar base64 strings,
-            * while Aedes uses UTF-8 encoding.
-            * For NodeJS > 7.1 we can use function `buffer.transcode()` here,
-            * but for now just send buffer as Base64-encoded string
-            */
-            msg.payload = packet.payload.toString('base64');
+
+          var msg = message.RawMessage.encode({
+              /**
+               * We must publish on NATS here, because on_publish() is also called
+               * when we receive message from NATS from other adapters (in nats.subscribe()),
+               * so we must avoid re-publishing on NATS what came from other adapters
+               */
+              publisher: client.id,
+              channel: channel,
+              protocol: 'mqtt',
+              content_type: packet.topic.split('/')[4],
+              /**
+               * Go encodes/decodes binary arrays ar base64 strings,
+               * while Aedes uses UTF-8 encoding.
+               * For NodeJS > 7.1 we can use function `buffer.transcode()` here,
+               * but for now just send buffer as Base64-encoded string
+               */
+              payload: packet.payload.toString('base64')
+            });
+
             // Pub on NATS
             nats.publish('msg.mqtt', JSON.stringify(msg));
         } else {
