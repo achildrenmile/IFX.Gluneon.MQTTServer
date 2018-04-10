@@ -17,7 +17,6 @@ var request = require('request');
 const util = require('util')
 
 var config = require('./mqtt.config');
-var nats = require('nats').connect(config.nats_url);
 
 var protobuf = require('protocol-buffers');
 const fs = require('fs');
@@ -52,90 +51,58 @@ function startWs() {
 function startMqtt() {
     return net.createServer(aedes.handle).listen(config.mqtt_port);
 }
-/**
- * NATS
- */
-nats.subscribe('channel.*', function (msg) {
-
-    var m = message.RawMessage.decode(Buffer.from(msg))
-
-    if (m.Protocol == 'mqtt') {
-        // Ignore MQTT loopback,
-        // packet has been already published by MQTT broker
-        // before sending it to NATS
-        return;
-    }
-
-    // Parse and adjust content-type
-    if (m.ContentType == "application/senml+json") {
-        m.ContentType = "senml-json"
-    }
-
-    var packet = {
-        cmd: 'publish',
-        qos: 2,
-        topic: 'mainflux/channels/' + m.Channel + '/messages/' + m.ContentType,
-        payload: m.Payload,
-        retain: false
-    };
-
-    aedes.publish(packet);
-});
 
 /**
  * Hooks
  */
-// AuthZ PUB
-aedes.authorizePublish = function (client, packet, callback) {
-    // Topics are in the form `mainflux/channels/<channel_id>/messages/senml-json`
-    var channel = packet.topic.split('/')[2];
+// AuthZ PUB TODO for Gluneon
+ aedes.authorizePublish = function (client, packet, callback) {
+    
+     if(packet.topic!=="admin")//on Admin Channel everyone who is authorized can, any time
+     {
+         // Topics are in the form `gluneonio//<channel_id>/messages/senml-json`
+         var project = packet.topic.split('/')[2];
 
-    /**
-     * Check if PUB is authorized
-     */
-    var options = {
-        url: config.auth_url + ':' + config.auth_port + '/channels/' + channel + '/access-grant',
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': client.password
-        }
-    };
+         /**
+          * Check if PUB is authorized
+          */
+         var options = {
+             url: config.auth_url + ':' + config.auth_port + '/projects/' + project + '/access-grant',
+             method: 'GET',
+             headers: {
+                 'Content-Type': 'application/json',
+                 'Authorization': client.password
+             }
+         };
 
-    request(options, function (err, res) {
-        var error = null;
-        var msg = {};
-        if (res && (res.statusCode === 200)) {
-            console.log('Publish authorized OK');
+         request(options, function (err, res) {
+             var error = null;
+             var msg = {};
+             if (res && (res.statusCode === 200)) {
+                 console.log('Publish authorized OK');
 
-          var msg = message.RawMessage.encode({
-              /**
-               * We must publish on NATS here, because on_publish() is also called
-               * when we receive message from NATS from other adapters (in nats.subscribe()),
-               * so we must avoid re-publishing on NATS what came from other adapters
-               */
-              Publisher: client.id,
-              Channel: channel,
-              Protocol: 'mqtt',
-              ContentType: packet.topic.split('/')[4],
-              Payload: packet.payload
-            });
+             var msg = message.RawMessage.encode({
+                 Publisher: client.id,
+                 Project: project,
+                 Protocol: 'mqtt',
+                 ContentType: packet.topic.split('/')[4],
+                 Payload: packet.payload
+                 });
 
-            console.log(msg);
+                 console.log(msg);
 
-            console.log(util.inspect(packet, false, null))
+                 console.log(util.inspect(packet, false, null))
 
-            // Pub on NATS
-            nats.publish('channel.' + channel, msg);
-        } else {
-            console.log('Publish not authorized');
-            error = 4; // Bad username or password
-        }
-        callback(error);
-    });
-};
+             } else {
+                 console.log('Publish not authorized');
+                 error = 4; // Bad username or password
+             }
+             callback(error);
+         });
+     }
+ };
 
-// AuthZ SUB
+//AuthZ SUB Todo for Gluneon
 aedes.authorizeSubscribe = function (client, packet, callback) {
     // Topics are in the form `mainflux/channels/<channel_id>/messages/senml-json`
     var channel = packet.topic.split('/')[2];
@@ -143,7 +110,7 @@ aedes.authorizeSubscribe = function (client, packet, callback) {
     * Check if PUB is authorized
     */
     var options = {
-        url: config.auth_url + ':' + config.auth_port + '/channels/' + channel + '/access-grant',
+        url: config.auth_url + ':' + config.auth_port + '/project/' + project + '/access-grant',
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',
