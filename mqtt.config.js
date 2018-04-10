@@ -7,5 +7,5 @@ module.exports = {
     // Auth service URL
     auth_url: process.env.AUTH_URL || 'http://localhost',
     // Auth service port
-    auth_port: process.env.AUTH_PORT || 8180
+    auth_port: process.env.AUTH_PORT || 5000
 };

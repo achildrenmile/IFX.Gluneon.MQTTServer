@@ -67,7 +67,7 @@ function startMqtt() {
           * Check if PUB is authorized
           */
          var options = {
-             url: config.auth_url + ':' + config.auth_port + '/projects/' + project + '/access-grant',
+             url: config.auth_url + ':' + config.auth_port + '/accessgrant/' + project,
              method: 'GET',
              headers: {
                  'Content-Type': 'application/json',
@@ -110,7 +110,7 @@ aedes.authorizeSubscribe = function (client, packet, callback) {
     * Check if PUB is authorized
     */
     var options = {
-        url: config.auth_url + ':' + config.auth_port + '/project/' + project + '/access-grant',
+        url: config.auth_url + ':' + config.auth_port + '/v1/accessgrant/',
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',
@@ -134,7 +134,7 @@ aedes.authorizeSubscribe = function (client, packet, callback) {
 aedes.authenticate = function (client, username, password, callback) {
     var c = client;
     var options = {
-        url: config.auth_url + ':' + config.auth_port + '/access-grant',
+        url: config.auth_url + ':' + config.auth_port + '/api/v1/accessgrant/',
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',
